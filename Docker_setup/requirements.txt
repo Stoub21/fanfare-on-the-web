@@ -1,0 +1,7 @@
+Django
+psycopg2
+dj-database-url
+django-tailwind
+django-tailwind[reload]
+cookiecutter
+Pillow

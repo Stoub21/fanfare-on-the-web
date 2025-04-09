@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+  web:
+    build: .
+    container_name: django_web
+    restart: always
+    volumes:
+      - ./../Django:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - minio
+    environment:
+      - DEBUG=${DEBUG}
+      - DATABASE_URL=${DATABASE_URL}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME}
+      - AWS_S3_ENDPOINT_URL=${AWS_S3_ENDPOINT_URL}
+      - AWS_S3_REGION_NAME=${AWS_S3_REGION_NAME}
+      - AWS_S3_ADDRESSING_STYLE=${AWS_S3_ADDRESSING_STYLE}
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio_storage
+    restart: always
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"  # API MinIO
+      - "9001:9001"  # Console d'administration MinIO
+
+  mc:  # MinIO Client pour créer un bucket automatiquement
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      mc mb --ignore-existing local/${AWS_STORAGE_BUCKET_NAME};
+      mc policy set public local/${AWS_STORAGE_BUCKET_NAME};
+      exit 0;
+      "
+
+volumes:
+  db_data:
+  minio_data:

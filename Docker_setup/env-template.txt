@@ -1,0 +1,22 @@
+# PostgreSQL Configuration
+POSTGRES_DB=mydatabase
+POSTGRES_USER=myuser
+POSTGRES_PASSWORD=mypassword
+
+# PGAdmin connection
+PGADMIN_EMAIL=admin@host.com
+PGADMIN_PASSWORD=adminpass
+
+# Django Configuration
+DEBUG=1
+DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+
+# MinIO Configuration
+AWS_ACCESS_KEY_ID=admin
+AWS_SECRET_ACCESS_KEY=password
+AWS_STORAGE_BUCKET_NAME=my-bucket
+AWS_S3_ENDPOINT_URL=http://minio:9000
+AWS_S3_REGION_NAME=eu-west-3
+AWS_S3_ADDRESSING_STYLE=path
+MINIO_ROOT_USER=admin
+MINIO_ROOT_PASSWORD=password
